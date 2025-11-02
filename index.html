@@ -3,61 +3,54 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover" />
-<title>Lyricめも.⊹⁺</title>
-
-<!-- 可愛い丸ゴシックフォント -->
-<link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@300;400;700&display=swap" rel="stylesheet">
-
+<title>歌詞メモ.⊹⁺ (●´ω｀●)</title>
 <style>
   :root{
     --bg:#0b0b0b;
     --card:#111;
     --muted:#9aa1a6;
-    /* 暖色アクセント（目に優しい） */
     --accent:#FF8B66;
     --border:#222;
     --glass: rgba(255,255,255,0.03);
   }
-  html,body{height:100%; margin:0; font-family: "M PLUS Rounded 1c", -apple-system, BlinkMacSystemFont, "Hiragino Kaku Gothic ProN","Noto Sans JP", "Helvetica Neue", Arial; background:var(--bg); color:#fff; -webkit-font-smoothing:antialiased;}
-  /* header fixed */
-  header{position:fixed; top:0; left:0; right:0; height:56px; display:flex; align-items:center; gap:8px; padding:8px 12px; background:linear-gradient(180deg, rgba(255,255,255,0.02), transparent); border-bottom:1px solid var(--border); z-index:60;}
-  .title{font-weight:700; font-size:18px; color:var(--accent); letter-spacing:0.6px;}
-  .title .sm{font-size:12px; color:var(--muted); margin-left:8px;}
-  .icon-btn{background:transparent; border:0; color:inherit; font-size:18px; padding:8px; border-radius:8px; cursor:pointer;}
-  .small-muted{color:var(--muted); font-size:13px;}
-  .container{display:flex; height:100vh; padding-top:56px; box-sizing:border-box; overflow:hidden;}
-  .sidebar{width:260px; min-width:200px; background:var(--card); border-right:1px solid var(--border); padding:10px; box-sizing:border-box; overflow:auto;}
-  .main{flex:1; display:flex; gap:8px; padding:12px; box-sizing:border-box; align-items:stretch;}
-  .lyric-box{flex:1; display:flex; flex-direction:column; background:linear-gradient(180deg, rgba(255,255,255,0.02), transparent); border-radius:10px; border:1px solid var(--border); overflow:hidden; min-width:0;}
-  .lyric-header{display:flex; align-items:center; justify-content:space-between; padding:10px; border-bottom:1px solid rgba(255,255,255,0.03);}
-  .lyric-title{font-weight:700;}
-  .toolbar{display:flex; gap:8px; align-items:center;}
-  /* ensure textarea font-size >=16 to prevent iOS auto-zoom */
-  textarea{background:transparent; border:0; color:#fff; padding:12px; font-size:16px; line-height:1.6; resize:none; width:100%; box-sizing:border-box; outline:none; font-family:"M PLUS Rounded 1c", -apple-system, "Hiragino Kaku Gothic ProN", "Noto Sans JP";}
+  /* システムフォントに戻す（M PLUS を読み込まない） */
+  html,body{height:100%; margin:0; font-family: -apple-system, BlinkMacSystemFont, "Hiragino Kaku Gothic ProN","Noto Sans JP", "Helvetica Neue", Arial; background:var(--bg); color:#fff; -webkit-font-smoothing:antialiased; font-size:13px;}
+  /* header fixed（文字少し小さめ） */
+  header{position:fixed; top:0; left:0; right:0; height:52px; display:flex; align-items:center; gap:8px; padding:8px 10px; background:linear-gradient(180deg, rgba(255,255,255,0.02), transparent); border-bottom:1px solid var(--border); z-index:60;}
+  .title{font-weight:700; font-size:15px; color:var(--accent); letter-spacing:0.4px;}
+  .title .sm{font-size:11px; color:var(--muted); margin-left:6px;}
+  .icon-btn{background:transparent; border:0; color:inherit; font-size:16px; padding:6px; border-radius:6px; cursor:pointer;}
+  .small-muted{color:var(--muted); font-size:12px;}
+  .container{display:flex; height:100vh; padding-top:52px; box-sizing:border-box; overflow:hidden;}
+  .sidebar{width:240px; min-width:180px; background:var(--card); border-right:1px solid var(--border); padding:8px; box-sizing:border-box; overflow:auto;}
+  .main{flex:1; display:flex; gap:8px; padding:10px; box-sizing:border-box; align-items:stretch;}
+  .lyric-box{flex:1; display:flex; flex-direction:column; background:linear-gradient(180deg, rgba(255,255,255,0.02), transparent); border-radius:8px; border:1px solid var(--border); overflow:hidden; min-width:0;}
+  .lyric-header{display:flex; align-items:center; justify-content:space-between; padding:8px; border-bottom:1px solid rgba(255,255,255,0.03);}
+  .lyric-title{font-weight:700; font-size:14px;}
+  .toolbar{display:flex; gap:6px; align-items:center;}
+  /* textarea は iOS 自動ズーム防止のため 16px を維持 */
+  textarea{background:transparent; border:0; color:#fff; padding:10px; font-size:16px; line-height:1.6; resize:none; width:100%; box-sizing:border-box; outline:none;}
   .lyric-text{flex:1; min-height:0; overflow:auto;}
-  .prompt-bar{display:flex; align-items:center; justify-content:space-between; padding:8px 10px; border-radius:8px; background:var(--glass); border:1px solid var(--border); cursor:pointer;}
-  .prompt-expanded{margin-top:8px; border-radius:8px; border:1px solid var(--border); background:var(--card); padding:8px;}
-  input, button, textarea { -webkit-tap-highlight-color: rgba(255,255,255,0.06); font-family:"M PLUS Rounded 1c"; }
-  .notes-list{display:flex; flex-direction:column; gap:8px; margin-top:8px;}
-  .note-item{padding:8px; background:transparent; border-radius:8px; border:1px solid transparent; cursor:pointer; display:flex; justify-content:space-between; align-items:center;}
-  .note-item.active{border-color:rgba(255,139,102,0.22); background:linear-gradient(90deg, rgba(255,139,102,0.03), transparent);}
-  .controls{display:flex; gap:8px; margin-top:10px;}
-  .btn{background:transparent; border:1px solid var(--border); color:inherit; padding:6px 8px; border-radius:8px; cursor:pointer;}
-  .footer{position:fixed; left:0; right:0; bottom:0; padding:8px 12px; background:linear-gradient(0deg, rgba(0,0,0,0.6), transparent); display:flex; justify-content:space-between; gap:8px; z-index:60; border-top:1px solid var(--border);}
-  .modal{position:fixed; left:6px; right:6px; top:66px; bottom:66px; margin:auto; background:rgba(2,2,2,0.95); border-radius:8px; padding:12px; box-sizing:border-box; z-index:80; display:none; overflow:auto; border:1px solid rgba(255,255,255,0.04);}
+  .prompt-bar{display:flex; align-items:center; justify-content:space-between; padding:6px 8px; border-radius:8px; background:var(--glass); border:1px solid var(--border); cursor:pointer; font-size:13px;}
+  .prompt-expanded{margin-top:6px; border-radius:8px; border:1px solid var(--border); background:var(--card); padding:8px;}
+  input, button, textarea { -webkit-tap-highlight-color: rgba(255,255,255,0.06); font-family:inherit; font-size:13px; }
+  .notes-list{display:flex; flex-direction:column; gap:6px; margin-top:8px;}
+  .note-item{padding:8px; background:transparent; border-radius:8px; border:1px solid transparent; cursor:pointer; display:flex; justify-content:space-between; align-items:center; font-size:13px;}
+  .note-item.active{border-color:rgba(255,139,102,0.18); background:linear-gradient(90deg, rgba(255,139,102,0.03), transparent);}
+  .controls{display:flex; gap:8px; margin-top:8px;}
+  .btn{background:transparent; border:1px solid var(--border); color:inherit; padding:6px 8px; border-radius:8px; cursor:pointer; font-size:13px;}
+  .footer{position:fixed; left:0; right:0; bottom:0; padding:6px 10px; background:linear-gradient(0deg, rgba(0,0,0,0.6), transparent); display:flex; justify-content:space-between; gap:8px; z-index:60; border-top:1px solid var(--border); font-size:13px;}
+  .modal{position:fixed; left:6px; right:6px; top:60px; bottom:60px; margin:auto; background:rgba(2,2,2,0.95); border-radius:8px; padding:10px; box-sizing:border-box; z-index:80; display:none; overflow:auto; border:1px solid rgba(255,255,255,0.04); font-size:13px;}
   .modal.open{display:block;}
-  .g-card{background:transparent; border:1px solid rgba(255,255,255,0.03); padding:10px; border-radius:8px; margin-bottom:10px;}
-  .term{display:inline-block; padding:6px 8px; border-radius:6px; background:rgba(255,255,255,0.02); margin:4px; cursor:pointer; border:1px solid rgba(255,255,255,0.02);}
-  .copy-notice{position:fixed; left:50%; transform:translateX(-50%); bottom:80px; background:#111; color:#fff; padding:8px 12px; border-radius:18px; opacity:0; transition:opacity .2s; z-index:90;}
-  /* compact icons */
-  .small-icon{font-size:14px; padding:6px; border-radius:6px; border:0; background:transparent; cursor:pointer; color:var(--muted);}
-  /* accent for arrows */
-  #prevNote, #nextNote { color: var(--accent); font-weight:700; }
-  /* glossary button small text */
-  #openGloss { font-size:12px; padding:6px; color:var(--muted); border-radius:6px; }
+  .g-card{background:transparent; border:1px solid rgba(255,255,255,0.03); padding:8px; border-radius:8px; margin-bottom:8px;}
+  .term{display:inline-block; padding:6px 8px; border-radius:6px; background:rgba(255,255,255,0.02); margin:4px; cursor:pointer; border:1px solid rgba(255,255,255,0.02); font-size:13px;}
+  .copy-notice{position:fixed; left:50%; transform:translateX(-50%); bottom:74px; background:#111; color:#fff; padding:8px 12px; border-radius:16px; opacity:0; transition:opacity .2s; z-index:90; font-size:13px;}
+  .small-icon{font-size:13px; padding:6px; border-radius:6px; border:0; background:transparent; cursor:pointer; color:var(--muted);}
+  #prevNote, #nextNote { color: var(--accent); font-weight:700; font-size:16px; }
+  #openGloss { font-size:11px; padding:6px; color:var(--muted); border-radius:6px; }
   @media (max-width:880px){
     .sidebar{display:none;}
-    .main{padding:10px;}
+    .main{padding:8px;}
     .modal{left:6px; right:6px; top:66px; bottom:66px;}
   }
 </style>
@@ -78,7 +71,7 @@
 <div class="container">
   <aside class="sidebar" id="sidebar">
     <div style="display:flex; gap:8px;">
-      <input id="newNoteName" placeholder="新しいノート名" style="flex:1; padding:8px; border-radius:8px; background:transparent; border:1px solid var(--border); color:#fff;">
+      <input id="newNoteName" placeholder="新しいノート名" style="flex:1; padding:8px; border-radius:8px; background:transparent; border:1px solid var(--border); color:#fff; font-size:13px;">
       <button id="createNote" class="btn">作成</button>
     </div>
 
@@ -93,7 +86,7 @@
   <main class="main" id="editorMain">
     <section class="lyric-box" id="leftBox">
       <div class="lyric-header">
-        <div class="lyric-title">1番♪</div>
+        <div class="lyric-title">① 1番（左）</div>
         <div class="toolbar">
           <button id="copyVerse1" class="small-icon" title="コピー（❐）">❐</button>
           <button id="clearVerse1" class="small-icon" title="消去（⌫）">⌫</button>
@@ -104,7 +97,7 @@
 
     <section class="lyric-box" id="rightBox">
       <div class="lyric-header">
-        <div class="lyric-title">2番♬</div>
+        <div class="lyric-title">② 2番（右）</div>
         <div class="toolbar">
           <button id="copyVerse2" class="small-icon" title="コピー（❐）">❐</button>
           <button id="clearVerse2" class="small-icon" title="消去（⌫）">⌫</button>
@@ -116,7 +109,7 @@
 </div>
 
 <!-- prompt collapsed / expanded -->
-<div style="position:fixed; left:14px; bottom:74px; width:320px; z-index:55;">
+<div style="position:fixed; left:12px; bottom:72px; width:300px; z-index:55;">
   <div id="promptBar" class="prompt-bar" title="タップで展開/格納">
     <div id="promptLabel">プロンプトメモ</div>
     <div id="promptToggle">▾</div>
@@ -143,7 +136,7 @@
 <!-- glossary modal -->
 <div id="glossModal" class="modal" role="dialog" aria-modal="true" aria-hidden="true">
   <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-    <div style="font-weight:700">音楽用語集（タップで [英語] をコピー）</div>
+    <div style="font-weight:700; font-size:14px;">音楽用語集（タップで [英語] をコピー）</div>
     <div>
       <button id="closeGloss" class="btn">閉じる</button>
     </div>
@@ -154,14 +147,14 @@
 <!-- notes list modal (native-like) -->
 <div id="notesModal" class="modal" aria-hidden="true" style="left:6px; right:6px; top:56px; bottom:56px;">
   <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-    <div style="font-weight:700">ノート一覧</div>
+    <div style="font-weight:700; font-size:14px;">ノート一覧</div>
     <div>
       <button id="closeNotesModal" class="btn">閉じる</button>
     </div>
   </div>
   <div id="notesModalContent"></div>
   <div style="margin-top:10px; display:flex; gap:8px;">
-    <input id="modalNewName" placeholder="新規ノート名" style="flex:1; padding:8px; border-radius:8px; background:transparent; border:1px solid var(--border); color:#fff;">
+    <input id="modalNewName" placeholder="新規ノート名" style="flex:1; padding:8px; border-radius:8px; background:transparent; border:1px solid var(--border); color:#fff; font-size:13px;">
     <button id="modalCreate" class="btn">作成</button>
   </div>
 </div>
@@ -506,16 +499,13 @@ function syncScroll(src, dst){
     setTimeout(()=> isSyncingScroll = false, 20);
   }
 }
-const verse1El = document.getElementById('verse1');
-const verse2El = document.getElementById('verse2');
 verse1El.addEventListener('scroll', ()=> syncScroll(verse1El, verse2El));
 verse2El.addEventListener('scroll', ()=> syncScroll(verse2El, verse1El));
 
 /* ===== init ===== */
 initNotes();
 
-/* ===== small helpers already included above ===== */
-
 </script>
 </body>
 </html>
+

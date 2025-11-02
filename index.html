@@ -30,7 +30,9 @@
   input, button, textarea { -webkit-tap-highlight-color: rgba(255,255,255,0.06); }
   .notes-list{display:flex; flex-direction:column; gap:8px; margin-top:8px;}
   .note-item{padding:8px; background:transparent; border-radius:8px; border:1px solid transparent; cursor:pointer; display:flex; justify-content:space-between; align-items:center;}
-  .note-item.active{border-color:rgba(42,161,152,0.22); background:linear-gradient(90deg, rgba(42,161,152,0.03), transparent);}
+  /* ▼▼▼ 修正点 2: アクセントカラーを目に優しい青に変更 ▼▼▼ */
+  .note-item.active{border-color:rgba(74, 144, 226, 0.22); background:linear-gradient(90deg, rgba(74, 144, 226, 0.03), transparent);}
+  /* ▲▲▲ 修正点 2 ▲▲▲ */
   .controls{display:flex; gap:8px; margin-top:10px;}
   .btn{background:transparent; border:1px solid var(--border); color:inherit; padding:6px 8px; border-radius:8px; cursor:pointer;}
   .footer{position:fixed; left:0; right:0; bottom:0; padding:8px 12px; background:linear-gradient(0deg, rgba(0,0,0,0.6), transparent); display:flex; justify-content:space-between; gap:8px; z-index:60; border-top:1px solid var(--border);}
@@ -41,6 +43,13 @@
   .copy-notice{position:fixed; left:50%; transform:translateX(-50%); bottom:80px; background:#111; color:#fff; padding:8px 12px; border-radius:18px; opacity:0; transition:opacity .2s; z-index:90;}
   /* compact icons */
   .small-icon{font-size:14px; padding:6px; border-radius:6px; border:0; background:transparent; cursor:pointer;}
+  
+  /* ▼▼▼ 修正点 1: 用語集ボタンのフォントサイズを調整 ▼▼▼ */
+  #openGloss, #openGlossNewTab {
+    font-size: 15px;
+  }
+  /* ▲▲▲ 修正点 1 ▲▲▲ */
+  
   @media (max-width:880px){
     .sidebar{display:none;}
     .main{padding:10px;}
@@ -101,7 +110,6 @@
   </main>
 </div>
 
-<!-- prompt collapsed / expanded -->
 <div style="position:fixed; left:14px; bottom:74px; width:320px; z-index:55;">
   <div id="promptBar" class="prompt-bar" title="タップで展開/格納">
     <div id="promptLabel">プロンプトメモ</div>
@@ -116,7 +124,6 @@
   </div>
 </div>
 
-<!-- footer -->
 <div class="footer">
   <div class="small-muted">ノート: <span id="currentName">（未選択）</span></div>
   <div style="display:flex; gap:8px;">
@@ -126,9 +133,8 @@
   </div>
 </div>
 
-<!-- glossary modal -->
 <div id="glossModal" class="modal" role="dialog" aria-modal="true" aria-hidden="true">
-  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:7px;">
+  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
     <div style="font-weight:700">音楽用語集（タップで [英語] をコピー）</div>
     <div>
       <button id="closeGloss" class="btn">閉じる</button>
@@ -137,7 +143,6 @@
   <div id="glossaryContent"></div>
 </div>
 
-<!-- notes list modal (native-like) -->
 <div id="notesModal" class="modal" aria-hidden="true" style="left:6px; right:6px; top:56px; bottom:56px;">
   <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
     <div style="font-weight:700">ノート一覧</div>
@@ -155,6 +160,7 @@
 <div id="copyNotice" class="copy-notice">コピーしました</div>
 
 <script>
+/* (JavaScript部分は変更ありません) */
 /* ===== Storage & notes model ===== */
 const STORAGE_KEY = 'suno_memo_dark_sync_v1';
 let notes = [];

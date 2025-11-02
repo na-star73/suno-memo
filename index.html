@@ -23,7 +23,9 @@
   .lyric-title{font-weight:700;}
   .toolbar{display:flex; gap:8px; align-items:center;}
   /* ensure textarea font-size >=16 to prevent iOS auto-zoom */
-  textarea{background:transparent; border:0; color:#fff; padding:12px; font-size:16px; line-height:1.6; resize:none; width:100%; box-sizing:border-box; outline:none;}
+  /* ▼▼▼ 修正点 3: テキストエリアの高さを100%に ▼▼▼ */
+  textarea{background:transparent; border:0; color:#fff; padding:12px; font-size:16px; line-height:1.6; resize:none; width:100%; height:100%; box-sizing:border-box; outline:none;}
+  /* ▲▲▲ 修正点 3 ▲▲▲ */
   .lyric-text{flex:1; min-height:0; overflow:auto;}
   .prompt-bar{display:flex; align-items:center; justify-content:space-between; padding:8px 10px; border-radius:8px; background:var(--glass); border:1px solid var(--border); cursor:pointer;}
   .prompt-expanded{margin-top:8px; border-radius:8px; border:1px solid var(--border); background:var(--card); padding:8px;}

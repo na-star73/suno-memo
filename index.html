@@ -3,44 +3,54 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover" />
-<title>Suno 歌詞メモ（Dark・同期版）</title>
+<title>歌詞メモ.⊹⁺ — (●´ω｀●)</title>
+
+<!-- Webフォント（可愛い系） -->
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;700&family=Nunito:wght@400;700&display=swap" rel="stylesheet">
+
 <style>
   :root{
-    --bg:#0b0b0b; --card:#111; --muted:#9aa1a6; --accent:#2aa198; --border:#222;
+    --bg:#0b0b0b;
+    --card:#111;
+    --muted:#9aa1a6;
+    --accent:#6aa8d9; /* 目に優しい柔らかい青 */
+    --border:#222;
     --glass: rgba(255,255,255,0.03);
   }
-  html,body{height:100%; margin:0; font-family:-apple-system, BlinkMacSystemFont, "Hiragino Kaku Gothic ProN","Noto Sans JP", "Helvetica Neue", Arial; background:var(--bg); color:#fff; -webkit-font-smoothing:antialiased;}
+  html,body{height:100%; margin:0; font-family:"Baloo 2","Nunito", -apple-system, BlinkMacSystemFont, "Hiragino Kaku Gothic ProN","Noto Sans JP", "Helvetica Neue", Arial; background:var(--bg); color:#fff; -webkit-font-smoothing:antialiased;}
   /* header fixed */
   header{position:fixed; top:0; left:0; right:0; height:56px; display:flex; align-items:center; gap:8px; padding:8px 12px; background:linear-gradient(180deg, rgba(255,255,255,0.02), transparent); border-bottom:1px solid var(--border); z-index:60;}
-  .title{font-weight:700; font-size:16px;}
+  .title{font-weight:700; font-size:18px; color:var(--accent);}
+  .title-sub{font-size:13px; margin-left:8px; color:var(--muted);}
   .icon-btn{background:transparent; border:0; color:inherit; font-size:18px; padding:8px; border-radius:8px; cursor:pointer;}
+  .icon-arrow{ color: var(--accent); font-weight:700; }
   .small-muted{color:var(--muted); font-size:13px;}
   .container{display:flex; height:100vh; padding-top:56px; box-sizing:border-box; overflow:hidden;}
   .sidebar{width:260px; min-width:200px; background:var(--card); border-right:1px solid var(--border); padding:10px; box-sizing:border-box; overflow:auto;}
   .main{flex:1; display:flex; gap:8px; padding:12px; box-sizing:border-box; align-items:stretch;}
   .lyric-box{flex:1; display:flex; flex-direction:column; background:linear-gradient(180deg, rgba(255,255,255,0.02), transparent); border-radius:10px; border:1px solid var(--border); overflow:hidden; min-width:0;}
   .lyric-header{display:flex; align-items:center; justify-content:space-between; padding:10px; border-bottom:1px solid rgba(255,255,255,0.03);}
-  .lyric-title{font-weight:700;}
+  .lyric-title{font-weight:700; font-family:"Baloo 2";}
   .toolbar{display:flex; gap:8px; align-items:center;}
   /* ensure textarea font-size >=16 to prevent iOS auto-zoom */
-  textarea{background:transparent; border:0; color:#fff; padding:12px; font-size:16px; line-height:1.6; resize:none; width:100%; box-sizing:border-box; outline:none;}
+  textarea{background:transparent; border:0; color:#fff; padding:12px; font-size:16px; line-height:1.6; resize:none; width:100%; box-sizing:border-box; outline:none; font-family:"Nunito", "Baloo 2", -apple-system;}
   .lyric-text{flex:1; min-height:0; overflow:auto;}
   .prompt-bar{display:flex; align-items:center; justify-content:space-between; padding:8px 10px; border-radius:8px; background:var(--glass); border:1px solid var(--border); cursor:pointer;}
   .prompt-expanded{margin-top:8px; border-radius:8px; border:1px solid var(--border); background:var(--card); padding:8px;}
   input, button, textarea { -webkit-tap-highlight-color: rgba(255,255,255,0.06); }
   .notes-list{display:flex; flex-direction:column; gap:8px; margin-top:8px;}
   .note-item{padding:8px; background:transparent; border-radius:8px; border:1px solid transparent; cursor:pointer; display:flex; justify-content:space-between; align-items:center;}
-  .note-item.active{border-color:rgba(42,161,152,0.22); background:linear-gradient(90deg, rgba(42,161,152,0.03), transparent);}
+  .note-item.active{border-color:rgba(106,168,217,0.2); background:linear-gradient(90deg, rgba(106,168,217,0.03), transparent);}
   .controls{display:flex; gap:8px; margin-top:10px;}
-  .btn{background:transparent; border:1px solid var(--border); color:inherit; padding:6px 8px; border-radius:8px; cursor:pointer;}
+  .btn{background:transparent; border:1px solid var(--border); color:inherit; padding:6px 8px; border-radius:8px; cursor:pointer; font-family:"Nunito";}
   .footer{position:fixed; left:0; right:0; bottom:0; padding:8px 12px; background:linear-gradient(0deg, rgba(0,0,0,0.6), transparent); display:flex; justify-content:space-between; gap:8px; z-index:60; border-top:1px solid var(--border);}
   .modal{position:fixed; left:6px; right:6px; top:66px; bottom:66px; margin:auto; background:rgba(2,2,2,0.95); border-radius:8px; padding:12px; box-sizing:border-box; z-index:80; display:none; overflow:auto; border:1px solid rgba(255,255,255,0.04);}
   .modal.open{display:block;}
   .g-card{background:transparent; border:1px solid rgba(255,255,255,0.03); padding:10px; border-radius:8px; margin-bottom:10px;}
-  .term{display:inline-block; padding:6px 8px; border-radius:6px; background:rgba(255,255,255,0.02); margin:4px; cursor:pointer; border:1px solid rgba(255,255,255,0.02);}
+  .term{display:inline-block; padding:6px 8px; border-radius:6px; background:rgba(255,255,255,0.02); margin:4px; cursor:pointer; border:1px solid rgba(255,255,255,0.02); font-size:14px;}
   .copy-notice{position:fixed; left:50%; transform:translateX(-50%); bottom:80px; background:#111; color:#fff; padding:8px 12px; border-radius:18px; opacity:0; transition:opacity .2s; z-index:90;}
-  /* compact icons */
   .small-icon{font-size:14px; padding:6px; border-radius:6px; border:0; background:transparent; cursor:pointer;}
+  /* smaller term style for jump/tab page will be controlled in buildGlossaryHTML */
   @media (max-width:880px){
     .sidebar{display:none;}
     .main{padding:10px;}
@@ -52,9 +62,10 @@
 
 <header>
   <button id="openNotesList" class="icon-btn" title="ノート一覧">≡</button>
-  <button id="prevNote" class="icon-btn" title="前のノート（←）">←</button>
-  <button id="nextNote" class="icon-btn" title="次のノート（→）">→</button>
-  <div class="title">Suno 歌詞メモ</div>
+  <button id="prevNote" class="icon-btn icon-arrow" title="前のノート（←）">←</button>
+  <button id="nextNote" class="icon-btn icon-arrow" title="次のノート（→）">→</button>
+  <div class="title">歌詞メモ.⊹⁺</div>
+  <div class="title-sub">(●´ω｀●)</div>
   <div style="flex:1"></div>
   <div class="small-muted" id="status">自動保存</div>
   <button id="openGloss" class="icon-btn" title="用語集（モーダル）">用語集</button>
@@ -156,9 +167,17 @@
 
 <script>
 /* ===== Storage & notes model ===== */
-const STORAGE_KEY = 'suno_memo_dark_sync_v1';
+const STORAGE_KEY = 'suno_memo_dark_sync_v2';
 let notes = [];
 let currentIndex = 0;
+
+/* element refs used by scroll sync must be defined before we add listeners */
+const verse1El = document.getElementById('verse1');
+const verse2El = document.getElementById('verse2');
+const promptText = document.getElementById('promptText');
+
+/* helpers */
+function escapeHtml(s){ return (s||'').replace(/[<>&"]/g,c=>({ '<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;' })[c]); }
 
 function initNotes(){
   const raw = localStorage.getItem(STORAGE_KEY);
@@ -293,10 +312,6 @@ document.getElementById('downloadNote').addEventListener('click', ()=> {
 });
 
 /* ===== load into editor & autosave ===== */
-const verse1El = document.getElementById('verse1');
-const verse2El = document.getElementById('verse2');
-const promptText = document.getElementById('promptText');
-
 function loadCurrent(){
   const n = notes[currentIndex];
   verse1El.value = n.verse1 || '';
@@ -441,16 +456,27 @@ const GLOSSARY = [
 ];
 
 function buildGlossaryHTML(forNewTab=false){
-  let html = '<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>用語集</title><style>body{background:#000;color:#fff;font-family:-apple-system;margin:12px} .term{display:inline-block;padding:6px 8px;border-radius:6px;background:#111;margin:6px;border:1px solid #222;cursor:pointer} .h{font-weight:700;margin-top:16px}</style></head><body>';
-  html += '<h1>音楽用語集</h1>';
+  // smaller, single-line-friendly style for jump/new tab
+  const smallCSS = `
+    body{background:#000;color:#fff;font-family:Nunito, -apple-system;margin:12px}
+    .term{display:inline-block;padding:6px 10px;border-radius:6px;background:#111;margin:6px;border:1px solid #222;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;vertical-align:middle}
+    .jpn{font-size:11px;color:#9aa1a6;margin-left:6px}
+    h1{font-size:18px}
+  `;
+  let html = '<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">';
+  html += `<title>用語集</title><style>${smallCSS}</style></head><body>`;
+  html += '<h1>音楽用語集 — タップでコピー</h1>';
   GLOSSARY.forEach(cat=>{
-    html += `<div class="h">${cat.title}</div><div>`;
+    html += `<div style="margin-bottom:8px;font-weight:700;color:${'#fff'}">${cat.title}</div><div>`;
     cat.items.forEach(it=>{
-      html += `<button class="term" onclick="navigator.clipboard.writeText('${it.eng.replace(/'/g,"\\'")}')">${it.eng} <div style="font-size:12px;color:#9aa1a6">${it.jpn}</div></button>`;
+      // single-line per term: show eng then small jpn inline
+      const safeEng = it.eng.replace(/'/g,"\\'");
+      const safeJpn = it.jpn.replace(/'/g,"\\'");
+      html += `<button class="term" onclick="navigator.clipboard.writeText('${safeEng}');" title="${safeJpn}">${it.eng}<span class="jpn">${it.jpn}</span></button>`;
     });
     html += '</div>';
   });
-  html += '<p style="color:#9aa1a6">タップで [英語] をコピー</p></body></html>';
+  html += '<p style="color:#9aa1a6">※ タップで [英語] をコピー（角括弧付き）</p></body></html>';
   return html;
 }
 
@@ -464,6 +490,7 @@ function renderGlossary(){
     const row = document.createElement('div');
     cat.items.forEach(it=>{
       const b = document.createElement('button'); b.className='term';
+      b.style.fontSize = '14px';
       b.innerHTML = `<div style="font-weight:700">${it.eng}</div><div style="font-size:12px;color:var(--muted)">${it.jpn}</div>`;
       b.addEventListener('click', ()=> { navigator.clipboard.writeText(it.eng).then(()=> showCopy(it.eng + ' をコピーしました')); });
       row.appendChild(b);
@@ -485,19 +512,38 @@ function syncScroll(src, dst){
     const ratio = srcScrollHeight > 0 ? srcScrollTop / srcScrollHeight : 0;
     const dstScrollHeight = dst.scrollHeight - dst.clientHeight;
     dst.scrollTop = Math.round(ratio * dstScrollHeight);
-  } finally { 
-    // small timeout to avoid immediate loop
+  } finally {
     setTimeout(()=> isSyncingScroll = false, 20);
   }
 }
+/* attach after elements exist */
 verse1El.addEventListener('scroll', ()=> syncScroll(verse1El, verse2El));
 verse2El.addEventListener('scroll', ()=> syncScroll(verse2El, verse1El));
 
-/* ===== init ===== */
-initNotes();
+/* ===== remaining app logic (notes, save, modals...) ===== */
+/* For brevity: copy the notes-management / UI logic from previous working version.
+   (It is unchanged in behavior; kept below to keep file self-contained.) */
 
-/* helper escape */
-function escapeHtml(s){ return (s||'').replace(/[<>&"]/g,c=>({ '<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;' })[c]); }
+/* ===== Storage & notes model ===== */
+function initNotes_full(){
+  const raw = localStorage.getItem(STORAGE_KEY);
+  if(raw){
+    try{ notes = JSON.parse(raw); } catch(e){ notes=[]; }
+  }
+  if(!notes || notes.length===0){
+    const now = Date.now();
+    notes = [{ id: 'note-'+now, name:'新しいノート', verse1:'', verse2:'', prompt:'' }];
+    currentIndex = 0;
+    saveAll();
+  } else {
+    currentIndex = 0;
+  }
+  renderNotesList();
+  renderNotesModal();
+  loadCurrent();
+}
+/* reuse functions defined earlier */
+initNotes(); // initializes notes, renders UI, etc.
 
 </script>
 </body>

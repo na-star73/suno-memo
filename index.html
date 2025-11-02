@@ -3,15 +3,10 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover" />
-<title>Lyricメモ.⊹⁺</title>
+<title>Suno 歌詞メモ（Dark・同期版）</title>
 <style>
   :root{
-    /* 暖色系アクセントに変更 */
-    --bg:#0b0b0b;
-    --card:#111;
-    --muted:#9aa1a6;
-    --accent:#e07a3f; /* warm orange */
-    --border:#222;
+    --bg:#0b0b0b; --card:#111; --muted:#9aa1a6; --accent:#2aa198; --border:#222;
     --glass: rgba(255,255,255,0.03);
   }
   html,body{height:100%; margin:0; font-family:-apple-system, BlinkMacSystemFont, "Hiragino Kaku Gothic ProN","Noto Sans JP", "Helvetica Neue", Arial; background:var(--bg); color:#fff; -webkit-font-smoothing:antialiased;}
@@ -19,7 +14,6 @@
   header{position:fixed; top:0; left:0; right:0; height:56px; display:flex; align-items:center; gap:8px; padding:8px 12px; background:linear-gradient(180deg, rgba(255,255,255,0.02), transparent); border-bottom:1px solid var(--border); z-index:60;}
   .title{font-weight:700; font-size:16px;}
   .icon-btn{background:transparent; border:0; color:inherit; font-size:18px; padding:8px; border-radius:8px; cursor:pointer;}
-  .icon-accent{ color: var(--accent); } /* 進む/戻る 用 */
   .small-muted{color:var(--muted); font-size:13px;}
   .container{display:flex; height:100vh; padding-top:56px; box-sizing:border-box; overflow:hidden;}
   .sidebar{width:260px; min-width:200px; background:var(--card); border-right:1px solid var(--border); padding:10px; box-sizing:border-box; overflow:auto;}
@@ -36,7 +30,7 @@
   input, button, textarea { -webkit-tap-highlight-color: rgba(255,255,255,0.06); }
   .notes-list{display:flex; flex-direction:column; gap:8px; margin-top:8px;}
   .note-item{padding:8px; background:transparent; border-radius:8px; border:1px solid transparent; cursor:pointer; display:flex; justify-content:space-between; align-items:center;}
-  .note-item.active{border-color:rgba(224,122,63,0.22); background:linear-gradient(90deg, rgba(224,122,63,0.03), transparent);}
+  .note-item.active{border-color:rgba(42,161,152,0.22); background:linear-gradient(90deg, rgba(42,161,152,0.03), transparent);}
   .controls{display:flex; gap:8px; margin-top:10px;}
   .btn{background:transparent; border:1px solid var(--border); color:inherit; padding:6px 8px; border-radius:8px; cursor:pointer;}
   .footer{position:fixed; left:0; right:0; bottom:0; padding:8px 12px; background:linear-gradient(0deg, rgba(0,0,0,0.6), transparent); display:flex; justify-content:space-between; gap:8px; z-index:60; border-top:1px solid var(--border);}
@@ -46,11 +40,7 @@
   .term{display:inline-block; padding:6px 8px; border-radius:6px; background:rgba(255,255,255,0.02); margin:4px; cursor:pointer; border:1px solid rgba(255,255,255,0.02);}
   .copy-notice{position:fixed; left:50%; transform:translateX(-50%); bottom:80px; background:#111; color:#fff; padding:8px 12px; border-radius:18px; opacity:0; transition:opacity .2s; z-index:90;}
   /* compact icons */
-  .small-icon{font-size:14px; padding:6px; border-radius:6px; border:0; background:transparent; cursor:pointer; color:var(--muted);}
-  .small-icon.accent{ color: var(--accent); }
-  /* 用語集ボタンを控えめに */
-  #openGloss{font-size:12px; padding:6px; color:var(--muted);}
-  #openGlossNewTab{font-size:12px; padding:6px; color:var(--muted);}
+  .small-icon{font-size:14px; padding:6px; border-radius:6px; border:0; background:transparent; cursor:pointer;}
   @media (max-width:880px){
     .sidebar{display:none;}
     .main{padding:10px;}
@@ -62,9 +52,9 @@
 
 <header>
   <button id="openNotesList" class="icon-btn" title="ノート一覧">≡</button>
-  <button id="prevNote" class="icon-btn icon-accent" title="前のノート（←）">←</button>
-  <button id="nextNote" class="icon-btn icon-accent" title="次のノート（→）">→</button>
-  <div class="title">Lyricメモ.⊹⁺</div>
+  <button id="prevNote" class="icon-btn" title="前のノート（←）">←</button>
+  <button id="nextNote" class="icon-btn" title="次のノート（→）">→</button>
+  <div class="title">Suno 歌詞メモ</div>
   <div style="flex:1"></div>
   <div class="small-muted" id="status">自動保存</div>
   <button id="openGloss" class="icon-btn" title="用語集（モーダル）">用語集</button>
@@ -89,9 +79,9 @@
   <main class="main" id="editorMain">
     <section class="lyric-box" id="leftBox">
       <div class="lyric-header">
-        <div class="lyric-title">1番♪</div>
+        <div class="lyric-title">① 1番（左）</div>
         <div class="toolbar">
-          <button id="copyVerse1" class="small-icon accent" title="コピー（❐）">❐</button>
+          <button id="copyVerse1" class="small-icon" title="コピー（❐）">❐</button>
           <button id="clearVerse1" class="small-icon" title="消去（⌫）">⌫</button>
         </div>
       </div>
@@ -100,9 +90,9 @@
 
     <section class="lyric-box" id="rightBox">
       <div class="lyric-header">
-        <div class="lyric-title">2番♫</div>
+        <div class="lyric-title">② 2番（右）</div>
         <div class="toolbar">
-          <button id="copyVerse2" class="small-icon accent" title="コピー（❐）">❐</button>
+          <button id="copyVerse2" class="small-icon" title="コピー（❐）">❐</button>
           <button id="clearVerse2" class="small-icon" title="消去（⌫）">⌫</button>
         </div>
       </div>
@@ -393,7 +383,6 @@ openGlossNewTabBtn.addEventListener('click', ()=> {
 });
 
 /* ===== glossary data & render ===== */
-/* (省略せず前の用語リストをそのまま利用) */
 const GLOSSARY = [
   { title:'セクション名', items:[
       {eng:'[Intro]', jpn:'楽曲の導入部分'},
@@ -496,12 +485,11 @@ function syncScroll(src, dst){
     const ratio = srcScrollHeight > 0 ? srcScrollTop / srcScrollHeight : 0;
     const dstScrollHeight = dst.scrollHeight - dst.clientHeight;
     dst.scrollTop = Math.round(ratio * dstScrollHeight);
-  } finally {
+  } finally { 
+    // small timeout to avoid immediate loop
     setTimeout(()=> isSyncingScroll = false, 20);
   }
 }
-const verse1El = document.getElementById('verse1');
-const verse2El = document.getElementById('verse2');
 verse1El.addEventListener('scroll', ()=> syncScroll(verse1El, verse2El));
 verse2El.addEventListener('scroll', ()=> syncScroll(verse2El, verse1El));
 

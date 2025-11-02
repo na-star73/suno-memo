@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover" />
+<title>Suno 歌詞メモ（完全版）</title>
+<style>
+  :root{
+    --bg:#fff; --muted:#666; --accent:#246; --card:#fbfbfb; --border:#e0e0e0;
+    --shadow: 0 6px 18px rgba(0,0,0,0.06);
+  }
+  html,body{height:100%; margin:0; font-family: -apple-system, BlinkMacSystemFont, "Hiragino Kaku Gothic ProN", "Helvetica Neue", "Noto Sans JP", Arial; background:var(--bg); color:#111;}
+  /* layout: horizontal pager: page 0 = editor, page 1 = glossary */
+  .pager{display:flex; width:200%; height:100vh; transform:translateX(0); transition:transform 300ms ease;}
+  .page{width:50%; height:100vh; box-sizing:border-box; overflow:hidden; display:flex; flex-direction:column;}
+  /* Header */
+  header{display:flex; align-items:center; gap:8px; padding:10px; border-bottom:1px solid var(--border); background:#fff; position:relative; z-index:5;}
+  .menu-btn{border:0; background:transparent; font-size:20px; padding:6px;}
+  .title{font-weight:600;}
+  .save-status{margin-left:auto; font-size:12px; color:var(--muted);}
+  /* Sidebar / notes list */
+  .app{display:flex; height:100%;}
+  .sidebar{width:260px; min-width:200px; max-width:320px; border-right:1px solid var(--border); background:var(--card); padding:10px; box-sizing:border-box; overflow:auto;}
+  .notes-list{display:flex; flex-direction:column; gap:8px;}
+  .note-item{background:#fff; padding:8px; border-radius:8px; box-shadow:var(--shadow); cursor:pointer; display:flex; justify-content:space-between; align-items:center;}
+  .note-item.active{outline:2px solid rgba(36,100,102,0.12);}
+  .note-actions{display:flex; gap:6px;}
+  .btn{border:0; padding:6px 8px; background:var(--accent); color:#fff; border-radius:6px; cursor:pointer;}
+  .small-btn{padding:6px; background:#ddd; color:#111; border-radius:6px;}
+  /* Editor column */
+  .editor-wrap{flex:1; display:flex; flex-direction:column; min-width:0;}
+  #prompt-area{padding:10px; border-bottom:1px solid var(--border); background:#fff;}
+  #prompt-head{display:flex; align-items:center; gap:8px;}
+  #prompt-text{width:100%; box-sizing:border-box; resize:none; font-size:15px; padding:8px; border-radius:8px; border:1px solid var(--border);}
+  #count{color:var(--muted); font-size:13px;}
+  .prompt-controls{display:flex; gap:8px; margin-left:auto;}
+  .toggle-btn{background:#f2f2f2; border-radius:6px; padding:6px; border:1px solid var(--border); cursor:pointer;}
+  .collapsed #prompt-text{height:0; padding:0 8px; border:0; visibility:hidden;}
+  /* lyrics split */
+  .lyrics{display:flex; gap:8px; padding:10px; height:calc(100% - 180px); box-sizing:border-box;}
+  .lyric-box{flex:1; display:flex; flex-direction:column; border-radius:8px; background:#fff; border:1px solid var(--border); box-shadow:var(--shadow); overflow:hidden;}
+  .lyric-header{display:flex; align-items:center; justify-content:space-between; padding:8px; border-bottom:1px solid var(--border);}
+  .lyric-text{flex:1; padding:8px; width:100%; box-sizing:border-box; border:0; resize:none; font-size:16px; line-height:1.6;}
+  /* bottom area: export / import */
+  .bottom{display:flex; gap:8px; padding:10px; border-top:1px solid var(--border); background:#fff; align-items:center;}
+  .file-input{display:none;}
+  /* Glossary page */
+  .glossary{padding:12px; overflow:auto; height:100%;}
+  .g-row{display:flex; flex-wrap:wrap; gap:8px; margin-bottom:12px;}
+  .g-card{flex:1 1 100%; background:#fff; border:1px solid var(--border); padding:10px; border-radius:8px; box-shadow:var(--shadow);}
+  .g-title{font-weight:700; margin-bottom:6px;}
+  .term{padding:6px 8px; border-radius:6px; cursor:pointer; display:inline-block; background:#f7f7f7; border:1px solid #eee; margin:4px 6px 4px 0;}
+  .term .eng{font-weight:700;}
+  .term .jpn{display:block; font-size:13px; color:var(--muted); margin-top:4px;}
+  .copy-notice{position:fixed; left:50%; transform:translateX(-50%); bottom:20px; background:#111; color:#fff; padding:8px 12px; border-radius:20px; opacity:0; transition:opacity .2s;}
+  /* Responsive: hide sidebar on small */
+  @media (max-width:900px){
+    .sidebar{position:fixed; left:-320px; top:0; bottom:0; z-index:50; transition:left 220ms; box-shadow:0 8px 30px rgba(0,0,0,0.12);}
+    .sidebar.open{left:0;}
+    .app{flex-direction:column;}
+    .page{width:100%;}
+    .pager{width:200%;}
+    .lyrics{height:calc(100% - 200px);}
+  }
+</style>
+</head>
+<body>
+
+<div id="root">
+  <header>
+    <button class="menu-btn" id="menuBtn">☰</button>
+    <div class="title">Suno 歌詞メモ</div>
+    <div style="margin-left:10px;color:var(--muted);font-size:13px">（上：プロンプト / 下：左右歌詞）</div>
+    <div class="save-status" id="status">自動保存</div>
+    <div style="width:10px"></div>
+    <button class="small-btn" id="gotoGloss">用語集へ→</button>
+  </header>
+
+  <div style="display:flex; height:calc(100vh - 56px);">
+    <div class="app" style="flex:1;">
+      <!-- PAGER -->
+      <div id="pager" class="pager">
+
+        <!-- PAGE 0: Editor -->
+        <div class="page" id="pageEditor" aria-label="editor page">
+          <!-- Sidebar -->
+          <aside class="sidebar" id="sidebar">
+            <div style="display:flex; gap:8px; align-items:center; margin-bottom:8px;">
+              <input id="newNoteName" placeholder="新しいノート名" style="flex:1; padding:8px; border-radius:8px; border:1px solid var(--border)">
+              <button id="createNote" class="btn">作成</button>
+            </div>
+
+            <div style="display:flex; gap:8px; margin-bottom:8px;">
+              <button id="exportAll" class="small-btn">エクスポート</button>
+              <label class="small-btn" style="cursor:pointer;">
+                インポート <input id="importFile" class="file-input" type="file" accept="application/json">
+              </label>
+            </div>
+
+            <div class="notes-list" id="notesList" aria-live="polite"></div>
+          </aside>
+
+          <!-- Editor area -->
+          <main class="editor-wrap">
+            <div id="prompt-area">
+              <div id="prompt-head" style="display:flex; align-items:center;">
+                <div style="font-weight:600">プロンプト用メモ</div>
+                <div style="margin-left:8px; color:var(--muted); font-size:13px">(上に展開/格納)</div>
+                <div class="prompt-controls">
+                  <button id="togglePrompt" class="toggle-btn">展開/格納</button>
+                </div>
+                <div style="margin-left:10px" id="countWrap">文字数: <span id="count">0</span></div>
+              </div>
+              <div id="promptBox" style="margin-top:8px;">
+                <textarea id="prompt-text" rows="4" placeholder="ここにプロンプトを書きます（文字数カウントあり）"></textarea>
+              </div>
+            </div>
+
+            <div class="lyrics">
+              <div class="lyric-box" id="box1">
+                <div class="lyric-header">
+                  <div><strong>① 1番（左）</strong></div>
+                  <div class="note-actions">
+                    <button class="small-btn" id="copyVerse1">コピー</button>
+                    <button class="small-btn" id="clearVerse1">消去</button>
+                  </div>
+                </div>
+                <textarea id="verse1" class="lyric-text" placeholder="1番の歌詞をここに書く"></textarea>
+              </div>
+
+              <div class="lyric-box" id="box2">
+                <div class="lyric-header">
+                  <div><strong>② 2番（右）</strong></div>
+                  <div class="note-actions">
+                    <button class="small-btn" id="copyVerse2">コピー</button>
+                    <button class="small-btn" id="clearVerse2">消去</button>
+                  </div>
+                </div>
+                <textarea id="verse2" class="lyric-text" placeholder="2番の歌詞をここに書く"></textarea>
+              </div>
+            </div>
+
+            <div class="bottom">
+              <div style="font-size:13px; color:var(--muted);">ノート名: <span id="currentName">（未選択）</span></div>
+              <div style="flex:1"></div>
+              <button class="small-btn" id="renameNote">名前変更</button>
+              <button class="small-btn" id="deleteNote">削除</button>
+              <button class="small-btn" id="downloadNote">保存（手動ダウンロード）</button>
+            </div>
+          </main>
+        </div>
+
+        <!-- PAGE 1: Glossary -->
+        <div class="page" id="pageGlossary" aria-label="glossary page">
+          <div style="display:flex; align-items:center; gap:8px; padding:10px; border-bottom:1px solid var(--border); background:#fff;">
+            <button id="backToEditor" class="small-btn">← メモに戻る</button>
+            <div style="font-weight:700">音楽用語集（タップで [英語] をコピー）</div>
+            <input id="glossSearch" placeholder="検索（英語 / 日本語）" style="margin-left:auto; padding:8px; border-radius:8px; border:1px solid var(--border)">
+          </div>
+
+          <div class="glossary" id="glossary">
+            <!-- カテゴリ別カードをJSで生成 -->
+          </div>
+        </div>
+
+      </div> <!-- pager -->
+
+    </div>
+  </div>
+
+  <div class="copy-notice" id="copyNotice">コピーしました</div>
+</div>
+
+<script>
+/* ========== データストレージ ========== */
+const STORAGE_KEY = 'suno_memo_notes_v1';
+let notes = []; // {id, name, prompt, verse1, verse2, updated}
+let currentId = null;
+
+/* sample initial note if none */
+function initNotes(){
+  const raw = localStorage.getItem(STORAGE_KEY);
+  if(raw){
+    try { notes = JSON.parse(raw); } catch(e){ notes=[]; }
+  }
+  if(!notes || notes.length===0){
+    const now = Date.now();
+    notes = [{
+      id: 'note-'+now,
+      name: '新しいノート',
+      prompt: '',
+      verse1: '',
+      verse2: '',
+      updated: now
+    }];
+    currentId = notes[0].id;
+    saveAll();
+  } else {
+    currentId = notes[0].id;
+  }
+}
+
+/* save to localStorage */
+function saveAll(){
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(notes));
+  document.getElementById('status').textContent = '自動保存 ' + new Date().toLocaleTimeString();
+  renderNotesList();
+}
+
+/* get current note */
+function getCurrentNote(){
+  return notes.find(n => n.id===currentId) || null;
+}
+
+/* ========== UI: notes list ========== */
+const notesListEl = document.getElementById('notesList');
+function renderNotesList(){
+  notesListEl.innerHTML = '';
+  notes.sort((a,b)=> b.updated - a.updated).forEach(n => {
+    const div = document.createElement('div');
+    div.className = 'note-item' + (n.id===currentId ? ' active' : '');
+    div.innerHTML = `<div style="flex:1;"><strong>${escapeHtml(n.name)}</strong><div style="font-size:12px;color:${'#666'}">${new Date(n.updated).toLocaleString()}</div></div>
+      <div style="display:flex; gap:6px; align-items:center;">
+        <button class="small-btn" data-id="${n.id}" data-action="open">開く</button>
+        <button class="small-btn" data-id="${n.id}" data-action="duplicate">複製</button>
+      </div>`;
+    notesListEl.appendChild(div);
+  });
+}
+
+/* helpers */
+function escapeHtml(str){ return (str||'').replace(/[<>&"]/g,(c)=>({ '<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;' })[c]); }
+
+/* create note */
+document.getElementById('createNote').addEventListener('click', ()=>{
+  const name = document.getElementById('newNoteName').value.trim() || '新しいノート';
+  const id = 'note-'+Date.now();
+  const n = {id, name, prompt:'', verse1:'', verse2:'', updated:Date.now()};
+  notes.push(n);
+  currentId = id;
+  saveAll();
+  loadCurrentToEditor();
+  document.getElementById('newNoteName').value = '';
+});
+
+/* click open / duplicate */
+notesListEl.addEventListener('click', (e)=>{
+  const btn = e.target.closest('button');
+  if(!btn) return;
+  const id = btn.dataset.id;
+  const action = btn.dataset.action;
+  if(action==='open'){ currentId = id; loadCurrentToEditor(); renderNotesList(); }
+  if(action==='duplicate'){
+    const orig = notes.find(x=>x.id===id);
+    if(orig){
+      const copy = {...orig, id:'note-'+Date.now(), name: orig.name + '（複製）', updated:Date.now()};
+      notes.push(copy);
+      currentId = copy.id;
+      saveAll();
+      loadCurrentToEditor();
+    }
+  }
+});
+
+/* rename and delete */
+document.getElementById('renameNote').addEventListener('click', ()=>{
+  const n = getCurrentNote();
+  if(!n) return alert('ノートを選択してください');
+  const nm = prompt('ノート名を入力', n.name);
+  if(nm!==null){
+    n.name = nm || '無題';
+    n.updated = Date.now();
+    saveAll();
+    renderNotesList();
+    document.getElementById('currentName').textContent = n.name;
+  }
+});
+
+document.getElementById('deleteNote').addEventListener('click', ()=>{
+  const n = getCurrentNote();
+  if(!n) return alert('ノートを選択してください');
+  if(!confirm('このノートを削除しますか？')) return;
+  notes = notes.filter(x=>x.id!==n.id);
+  if(notes.length===0){
+    const now = Date.now();
+    notes = [{id:'note-'+now, name:'新しいノート', prompt:'', verse1:'', verse2:'', updated:now}];
+  }
+  currentId = notes[0].id;
+  saveAll();
+  loadCurrentToEditor();
+});
+
+/* download (export single note) */
+document.getElementById('downloadNote').addEventListener('click', ()=>{
+  const n = getCurrentNote();
+  if(!n) return;
+  const data = JSON.stringify(n, null, 2);
+  const blob = new Blob([data], {type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = (n.name||'note') + '.json';
+  document.body.appendChild(a); a.click(); a.remove();
+  URL.revokeObjectURL(url);
+});
+
+/* export all */
+document.getElementById('exportAll').addEventListener('click', ()=>{
+  const data = JSON.stringify(notes, null, 2);
+  const blob = new Blob([data], {type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'suno_memo_all.json';
+  document.body.appendChild(a); a.click(); a.remove();
+  URL.revokeObjectURL(url);
+});
+
+/* import file */
+document.getElementById('importFile').addEventListener('change', (e)=>{
+  const f = e.target.files[0];
+  if(!f) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    try {
+      const loaded = JSON.parse(reader.result);
+      if(Array.isArray(loaded)){
+        notes = loaded;
+        currentId = notes[0]?.id || null;
+        saveAll();
+        loadCurrentToEditor();
+        alert('インポート完了（配列）');
+      } else if(loaded && loaded.id){
+        notes.push(loaded);
+        currentId = loaded.id;
+        saveAll();
+        loadCurrentToEditor();
+        alert('ノートを追加しました');
+      } else {
+        alert('不正なファイルです');
+      }
+    } catch(err){ alert('読み込み失敗: ' + err.message); }
+  };
+  reader.readAsText(f);
+});
+
+/* ========== Editor binding ========== */
+const promptText = document.getElementById('prompt-text');
+const verse1 = document.getElementById('verse1');
+const verse2 = document.getElementById('verse2');
+const countEl = document.getElementById('count');
+const currentNameEl = document.getElementById('currentName');
+
+function loadCurrentToEditor(){
+  const n = getCurrentNote();
+  if(!n) return;
+  promptText.value = n.prompt || '';
+  verse1.value = n.verse1 || '';
+  verse2.value = n.verse2 || '';
+  countEl.textContent = (n.prompt||'').length;
+  currentNameEl.textContent = n.name || '（無題）';
+  renderNotesList();
+}
+
+/* auto-save on input (debounced) */
+let saveTimer = null;
+[promptText, verse1, verse2].forEach(el=>{
+  el.addEventListener('input', ()=>{
+    countEl.textContent = promptText.value.length;
+    if(!currentId) return;
+    if(saveTimer) clearTimeout(saveTimer);
+    saveTimer = setTimeout(()=>{
+      const n = getCurrentNote();
+      if(!n) return;
+      n.prompt = promptText.value;
+      n.verse1 = verse1.value;
+      n.verse2 = verse2.value;
+      n.updated = Date.now();
+      saveAll();
+    }, 500);
+  });
+});
+
+/* copy verse buttons */
+document.getElementById('copyVerse1').addEventListener('click', ()=>{
+  navigator.clipboard.writeText(verse1.value).then(()=>showCopyNotice('1番をコピーしました'));
+});
+document.getElementById('copyVerse2').addEventListener('click', ()=>{
+  navigator.clipboard.writeText(verse2.value).then(()=>showCopyNotice('2番をコピーしました'));
+});
+document.getElementById('clearVerse1').addEventListener('click', ()=>{ if(confirm('消しますか？')){ verse1.value=''; verse1.dispatchEvent(new Event('input')); }});
+document.getElementById('clearVerse2').addEventListener('click', ()=>{ if(confirm('消しますか？')){ verse2.value=''; verse2.dispatchEvent(new Event('input')); }});
+
+/* toggle prompt */
+document.getElementById('togglePrompt').addEventListener('click', ()=>{
+  document.getElementById('promptBox').classList.toggle('collapsed');
+});
+
+/* menu open for mobile */
+document.getElementById('menuBtn').addEventListener('click', ()=>{
+  const sb = document.getElementById('sidebar');
+  sb.classList.toggle('open');
+});
+
+/* ========== Pager (swipe to glossary) ========== */
+const pager = document.getElementById('pager');
+let pageIndex = 0; // 0 = editor, 1 = glossary
+function goPage(i){
+  pageIndex = i;
+  pager.style.transform = `translateX(${ -50 * i }%)`;
+}
+document.getElementById('gotoGloss').addEventListener('click', ()=> goPage(1));
+document.getElementById('backToEditor').addEventListener('click', ()=> goPage(0));
+
+/* touch swipe */
+let touchStartX = 0, touchEndX = 0;
+document.addEventListener('touchstart', (e)=> touchStartX = e.changedTouches[0].clientX );
+document.addEventListener('touchend', (e)=>{
+  touchEndX = e.changedTouches[0].clientX;
+  const diff = touchEndX - touchStartX;
+  if(Math.abs(diff) < 40) return;
+  if(diff < 0) goPage(1); else goPage(0);
+});
+
+/* ========== Glossary data (カテゴリ別) ========== */
+const GLOSSARY = [
+  {
+    title: 'セクション名',
+    items: [
+      {eng:'[Intro]', jpn:'楽曲の導入部分'},
+      {eng:'[Verse]', jpn:'日本では「Aメロ」と呼ばれる部分'},
+      {eng:'[Pre-Chorus]', jpn:'サビに導くセクション（日本では「Bメロ」）'},
+      {eng:'[Chorus]', jpn:'日本では「サビ」と呼ばれる部分'},
+      {eng:'[Post-Chorus]', jpn:'サビの直後のセクション'},
+      {eng:'[Bridge]', jpn:'日本では「Cメロ」に近い'},
+      {eng:'[Hook]', jpn:'サビとほぼ同義だがよりカジュアル'},
+      {eng:'[Solo]', jpn:'楽器のソロ演奏'},
+      {eng:'[melodic interlude]', jpn:'間奏'},
+      {eng:'[Break]', jpn:'休符やブレイク'},
+      {eng:'[Percussion Break]', jpn:'打楽器のブレイク'},
+      {eng:'[Call and response]', jpn:'コール＆レスポンス'},
+      {eng:'[Shout]', jpn:'シャウト'},
+      {eng:'[Outro]', jpn:'曲の終わり部分'},
+      {eng:'[Refrain]', jpn:'リフレイン'},
+      {eng:'[Big Finish]', jpn:'楽曲の最後を盛り上げるセクション'},
+      {eng:'[End]', jpn:'終了'},
+      {eng:'[Fade Out]', jpn:'フェードアウトで終わる'},
+      {eng:'[Fade to End]', jpn:'フェードアウトして終わる'}
+    ]
+  },
+  {
+    title: 'ジャンル（英語／日本語）',
+    items:[
+      {eng:'[J-pop]', jpn:'Jポップ：日本のポップミュージック。キャッチーなメロディ。'},
+      {eng:'[Techno pop]', jpn:'テクノポップ：電子音とポップの融合'},
+      {eng:'[City pop]', jpn:'シティポップ：80年代の都会的ポップ'},
+      {eng:'[Anime song]', jpn:'アニソン：元気で明るい雰囲気'},
+      {eng:'[J-Rock]', jpn:'Jロック：エネルギッシュなロック'},
+      {eng:'[Indie rock]', jpn:'インディーロック：オルタナ系の自由な表現'},
+      {eng:'[Pop punk]', jpn:'ポップパンク：疾走感とキャッチーさ'},
+      {eng:'[Shoegaze]', jpn:'シューゲイズ：夢幻的なギターサウンド'}
+    ]
+  },
+  {
+    title: 'ロック／メタル系',
+    items:[
+      {eng:'[Metal]', jpn:'メタル：重厚なギターリフと力強いボーカル'},
+      {eng:'[Hard rock]', jpn:'ハードロック：歪んだギターサウンドが特徴'},
+      {eng:'[Punk rock]', jpn:'パンクロック：速く攻撃的なサウンド'},
+      {eng:'[Post-rock]', jpn:'ポストロック：楽器主体で壮大な雰囲気'},
+      {eng:'[Math rock]', jpn:'マスロック：変拍子・テクニカルな演奏'}
+    ]
+  },
+  {
+    title: 'ラップ／R&B系',
+    items:[
+      {eng:'[Rap]', jpn:'ラップ：リズムに乗せた語り口調のボーカル'},
+      {eng:'[Hip-hop]', jpn:'ヒップホップ：ラップとビートを組み合わせた音楽'},
+      {eng:'[Trap]', jpn:'トラップ：808ベースとハイハットが特徴'},
+      {eng:'[R&B]', jpn:'R&B：ソウルフルなボーカルとリズム'},
+      {eng:'[Neo soul]', jpn:'ネオソウル：モダンなソウルミュージック'}
+    ]
+  },
+  {
+    title: 'ジャズ／クラシック系',
+    items:[
+      {eng:'[Jazz]', jpn:'ジャズ：即興や複雑なハーモニー'},
+      {eng:'[Bebop]', jpn:'ビバップ：速いテンポと複雑な進行'},
+      {eng:'[Swing]', jpn:'スウィング：ビッグバンドのジャズ'},
+      {eng:'[Classical]', jpn:'クラシック：オーケストラが主体'},
+      {eng:'[Baroque]', jpn:'バロック：装飾的な旋律'},
+      {eng:'[Minimal music]', jpn:'ミニマル音楽：反復フレーズが特徴'}
+    ]
+  },
+  {
+    title: 'ワールド／その他',
+    items:[
+      {eng:'[Reggae]', jpn:'レゲエ：カリブ発祥の独特なビート'},
+      {eng:'[Blues]', jpn:'ブルース：哀愁のあるメロディ'},
+      {eng:'[Folk]', jpn:'フォーク：アコースティック主体'},
+      {eng:'[Country]', jpn:'カントリー：アメリカ南部発祥'},
+      {eng:'[Flamenco]', jpn:'フラメンコ：スペインの情熱的な歌とギター'},
+      {eng:'[Bossa nova]', jpn:'ボサノバ：ブラジルのジャズとサンバ融合'}
+    ]
+  },
+  {
+    title: 'テンポ・感情（表現）',
+    items:[
+      {eng:'[Slow tempo]', jpn:'遅いテンポ：ゆったり'},
+      {eng:'[Medium tempo]', jpn:'中テンポ：ほどよい速さ'},
+      {eng:'[Fast tempo]', jpn:'速いテンポ：勢いある'},
+      {eng:'[Joyful]', jpn:'明るい：喜びを表現'},
+      {eng:'[Melancholic]', jpn:'憂鬱：切なさを表現'},
+      {eng:'[Energetic]', jpn:'元気な：活気がある'},
+      {eng:'[Romantic]', jpn:'ロマンチック：甘い雰囲気'},
+      {eng:'[Calm]', jpn:'穏やか：リラックス'},
+      {eng:'[Aggressive]', jpn:'アグレッシブ：攻撃的'},
+      {eng:'[Inspirational]', jpn:'感動的：鼓舞する'},
+      {eng:'[Mysterious]', jpn:'神秘的：謎めいた雰囲気'}
+    ]
+  },
+  {
+    title: 'エレクトロニック系',
+    items:[
+      {eng:'[Electronic]', jpn:'エレクトロニック：シンセ主体'},
+      {eng:'[EDM]', jpn:'EDM：ダンス向けの電子音楽'},
+      {eng:'[House]', jpn:'ハウス：4つ打ちのリズム'},
+      {eng:'[Techno]', jpn:'テクノ：機械的で高速なビート'},
+      {eng:'[Trance]', jpn:'トランス：幻想的なメロディ'},
+      {eng:'[Dubstep]', jpn:'ダブステップ：重低音が特徴'},
+      {eng:'[Lo-fi]', jpn:'ローファイ：チルでリラックスした雰囲気'}
+    ]
+  }
+];
+
+/* render glossary */
+const glossaryEl = document.getElementById('glossary');
+const searchInput = document.getElementById('glossSearch');
+function renderGloss(filter=''){
+  glossaryEl.innerHTML = '';
+  const q = (filter||'').trim().toLowerCase();
+  GLOSSARY.forEach(cat=>{
+    const card = document.createElement('div'); card.className='g-card';
+    const t = document.createElement('div'); t.className='g-title'; t.textContent = cat.title;
+    card.appendChild(t);
+    const row = document.createElement('div'); row.className='g-row';
+    cat.items.forEach(it=>{
+      const text = `${it.eng} ${it.jpn}`;
+      if(q && ! (text.toLowerCase().includes(q) || it.eng.toLowerCase().includes(q) || (it.jpn||'').toLowerCase().includes(q)) ) return;
+      const term = document.createElement('button'); term.className='term';
+      term.innerHTML = `<span class="eng">${it.eng}</span><span class="jpn">${it.jpn}</span>`;
+      term.addEventListener('click', ()=>{
+        navigator.clipboard.writeText(it.eng).then(()=> showCopyNotice(it.eng + ' をコピーしました'));
+      });
+      row.appendChild(term);
+    });
+    card.appendChild(row);
+    glossaryEl.appendChild(card);
+  });
+}
+searchInput.addEventListener('input', ()=> renderGloss(searchInput.value));
+renderGloss();
+
+/* copy notice */
+function showCopyNotice(text){
+  const el = document.getElementById('copyNotice');
+  el.textContent = text;
+  el.style.opacity = 1;
+  setTimeout(()=> el.style.opacity = 0, 1600);
+}
+
+/* quick init */
+initNotes();
+loadCurrentToEditor();
+
+/* small helper: close sidebar if open when clicking outside on mobile */
+document.addEventListener('click', (e)=>{
+  const sb = document.getElementById('sidebar');
+  if(!sb.classList.contains('open')) return;
+  if(e.target.closest('#sidebar') || e.target.closest('#menuBtn')) return;
+  sb.classList.remove('open');
+});
+</script>
+</body>
+</html>
+
+
